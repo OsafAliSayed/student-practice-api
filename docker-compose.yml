@@ -1,0 +1,20 @@
+services:
+  api:
+    build: .
+    container_name: course-practice-api
+    restart: unless-stopped
+    environment:
+      # The public HTTPS address; goes into openapi.json `servers` so Postman's import gets the right baseUrl.
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:?set PUBLIC_BASE_URL, e.g. https://api.example.com}
+      SLOW_REPORT_SECONDS: "15"
+      REPORT_SECONDS: "1"
+    # Bound to localhost: only the reverse proxy on this host can reach it.
+    # If the proxy runs in Docker, drop `ports` and join its network instead.
+    ports:
+      - "127.0.0.1:8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
